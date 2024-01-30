@@ -2,12 +2,16 @@ package com.example.assignment3_bigger_calculator
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
+import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.BoolRes
 import com.google.android.material.button.MaterialButton
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var longResultTv: TextView
     private lateinit var resultTv: TextView
     private lateinit var buttonC: MaterialButton
     private lateinit var buttonNegate: MaterialButton
@@ -30,18 +34,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonAC: MaterialButton
     private lateinit var buttonDot: MaterialButton
 
-    private var currentInput = StringBuilder() // NOTE -> used chatGPT to decide how to keep track of input (via StringBuilder)
-    private var currentOperator: String? = null
 
-    private var firstOperand: Double? = null
-    private var secondOperand: Double? = null
-    private var onFirstOperand = true
+    private var canAddOperation = false
+    private var canAddDecimal = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // initialize views
+        longResultTv = findViewById(R.id.long_result_tv)
         resultTv = findViewById(R.id.result_tv)
         buttonC = findViewById(R.id.button_c)
         buttonNegate = findViewById(R.id.button_negate)
@@ -66,127 +68,63 @@ class MainActivity : AppCompatActivity() {
 
 
         // set onClick listeners for each view
-        button0.setOnClickListener { appendInput("0") }
-        button1.setOnClickListener { appendInput("1") }
-        button2.setOnClickListener { appendInput("2") }
-        button3.setOnClickListener { appendInput("3") }
-        button4.setOnClickListener { appendInput("4") }
-        button5.setOnClickListener { appendInput("5") }
-        button6.setOnClickListener { appendInput("6") }
-        button7.setOnClickListener { appendInput("7") }
-        button8.setOnClickListener { appendInput("8") }
-        button9.setOnClickListener { appendInput("9") }
-        buttonPlus.setOnClickListener { handleOperator("+") }
-        buttonMinus.setOnClickListener { handleOperator("-") }
-        buttonMultiply.setOnClickListener { handleOperator("*") }
-        buttonDivide.setOnClickListener { handleOperator("/") }
-        buttonEquals.setOnClickListener { calculateResult() }
+        button0.setOnClickListener { numberAction(it) }
+        button1.setOnClickListener { numberAction(it) }
+        button2.setOnClickListener { numberAction(it) }
+        button3.setOnClickListener { numberAction(it) }
+        button4.setOnClickListener { numberAction(it) }
+        button5.setOnClickListener { numberAction(it) }
+        button6.setOnClickListener { numberAction(it) }
+        button7.setOnClickListener { numberAction(it) }
+        button8.setOnClickListener { numberAction(it) }
+        button9.setOnClickListener { numberAction(it) }
+        buttonDot.setOnClickListener { numberAction(it) }
+        buttonPlus.setOnClickListener { handleOperation(it) }
+        buttonMinus.setOnClickListener { handleOperation(it) }
+        buttonMultiply.setOnClickListener { handleOperation(it) }
+        buttonDivide.setOnClickListener { handleOperation(it) }
+//        buttonEquals.setOnClickListener { calculateResult() }
         buttonC.setOnClickListener { clearLastInput() }
         buttonAC.setOnClickListener { clearAll() }
-        buttonDot.setOnClickListener { appendInput(".") }
 
     }
 
-    private fun appendInput(digit: String) {
-        // handle case for double decimals
-        if (digit == "." && currentInput.isNotEmpty() && currentInput.last() == '.') {
-            return
-        }
-        currentInput.append(digit)
-        updateDisplay()
+    private fun numberAction(view: View) {
 
-        // update operands accordingly
-        if (onFirstOperand) {
-            firstOperand = currentInput.toString().toDouble()
-        } else {
-            secondOperand = currentInput.toString().toDouble()
-        }
-    }
-
-    private fun handleOperator(operator: String) {
-        // check if current operator is already set (perform current preceding operation... regardless of PEMDAS)
-        if (currentOperator != null) {
-            // If there is an existing operator, perform the calculation
-            calculateResult()
-        }
-        // otherwise, we are setting this operator for the first time (must swap operands)
-        else {
-            onFirstOperand = !onFirstOperand
-            currentInput.clear()
-            updateDisplay()
-        }
-
-        currentOperator = operator
-        updateDisplay()
-    }
-
-    private fun calculateResult() {
-        if (currentOperator !== null) {
-            // Perform the calculation based on the current input and operator
-            val result = performCalculation()
-
-            // update currentInput with result of calculation
-            currentInput.clear()
-            if (result > 0) {
-                currentInput.append(result.toString())
-            }
-
-            // update operands
-            if (onFirstOperand) {
-                firstOperand = currentInput.toString().toDouble()
+        // confirm that view we are looking at is a button input
+        if (view is Button) {
+            if (view.text == ".") {
+                if (canAddDecimal) {
+                    longResultTv.append(view.text)
+                    canAddDecimal = false
+                }
             } else {
-                secondOperand = currentInput.toString().toDouble()
+                longResultTv.append(view.text)
             }
-
-            // clear current operator
-            currentOperator = null
-            updateDisplay()
+            canAddOperation = true
         }
     }
 
-    private fun performCalculation(): Double {
-        // Implement the calculation based on the current input and operator
-        if (firstOperand == null || secondOperand == null) {
-            return 0.0
-        }
-        return when (currentOperator) {
-                "+" -> firstOperand!! + secondOperand!!
-                "-" -> firstOperand!! - secondOperand!!
-                "*" -> firstOperand!! * secondOperand!!
-//                "/" -> firstOperand!! + secondOperand!!
-            else -> 0.0
+    private fun handleOperation(view: View) {
+        if (view is Button && canAddOperation) {
+            // add operator to top display (cannot add additional operaton right now)
+            longResultTv.append(view.text)
+            canAddOperation = false
+            canAddDecimal = true
         }
     }
 
     private fun clearLastInput() {
-        if (currentInput.isEmpty()) {
-            return
+        val length = resultTv.length()
+        if (length > 0) {
+            resultTv.text = resultTv.text.subSequence(0, length - 1)
         }
-        // Clear the last entered digit or operator
-        currentInput.deleteCharAt(currentInput.length - 1)
-        // if not input, clear all
-        if (currentInput.isEmpty()) {
-            clearAll()
-        }
-        updateDisplay()
     }
 
     private fun clearAll() {
         // Clear all input and reset the calculator
-        currentInput.clear()
-        currentOperator = null
-        firstOperand = null
-        secondOperand = null
-        onFirstOperand = true
-        updateDisplay()
+        longResultTv.text = " "
+        resultTv.text = ""
     }
 
-    private fun updateDisplay() {
-        // Update the inputTextView and resultTextView with the current input and result
-        resultTv.text = if (currentInput.isNotEmpty()) {
-            currentInput.toString()
-        } else {
-            "0"
-        }
-    }
 }
