@@ -83,6 +83,7 @@ class MainActivity : AppCompatActivity() {
         buttonMinus.setOnClickListener { handleOperation(it) }
         buttonMultiply.setOnClickListener { handleOperation(it) }
         buttonDivide.setOnClickListener { handleOperation(it) }
+        buttonModulus.setOnClickListener { handleOperation(it) }
 //        buttonEquals.setOnClickListener { calculateResult() }
         buttonC.setOnClickListener { clearLastInput() }
         buttonAC.setOnClickListener { clearAll() }
@@ -90,15 +91,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun numberAction(view: View) {
-
         // confirm that view we are looking at is a button input
         if (view is Button) {
+            // handle decimal edge case
             if (view.text == ".") {
                 if (canAddDecimal) {
                     longResultTv.append(view.text)
                     canAddDecimal = false
                 }
-            } else {
+            }
+            // handle division/mod by zero
+            else if (longResultTv.text.isNotEmpty() && (longResultTv.text.last() == '/' || longResultTv.text.last() == '%') && view.text == "0") {
+                Toast.makeText(this, "Cannot divide by 0", Toast.LENGTH_SHORT).show()
+                return
+            }
+            // handle
+            else {
                 longResultTv.append(view.text)
             }
             canAddOperation = true
@@ -107,24 +115,62 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleOperation(view: View) {
         if (view is Button && canAddOperation) {
-            // add operator to top display (cannot add additional operaton right now)
+            // add operator to top display (cannot add additional operation right now)
             longResultTv.append(view.text)
             canAddOperation = false
             canAddDecimal = true
         }
     }
 
+
+    // NOTE -> the following functions were based off of this tutorial https://www.youtube.com/watch?v=2hSHgungOKI
+    private fun equals(view: View) {
+
+    }
+
+    private fun calculateResults(): String {
+
+        return ""
+    }
+
+    private fun digitsOperators(): MutableList<Any> {
+        val list = mutableListOf<Any>()
+        var currentDigit = ""
+        for (ch in longResultTv.text) {
+            // digit case
+            if (ch.isDigit() || ch == '.') {
+                currentDigit += ch
+            }
+            // operator case
+            else {
+                list.add(currentDigit.toFloat())
+                currentDigit = ""
+                list.add(ch) // add operator to list
+            }
+        }
+
+        // add final digit to list (if applicable)
+        if (currentDigit.isNotEmpty()) {
+            list.add(currentDigit.toFloat())
+        }
+
+        return list
+    }
+
+
+
     private fun clearLastInput() {
-        val length = resultTv.length()
+        val length = longResultTv.length()
         if (length > 0) {
-            resultTv.text = resultTv.text.subSequence(0, length - 1)
+            longResultTv.text = longResultTv.text.subSequence(0, length - 1)
         }
     }
 
     private fun clearAll() {
         // Clear all input and reset the calculator
-        longResultTv.text = " "
+        longResultTv.text = ""
         resultTv.text = ""
+        canAddDecimal = true
     }
 
 }
