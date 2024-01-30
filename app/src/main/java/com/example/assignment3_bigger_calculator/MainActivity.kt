@@ -256,7 +256,7 @@ class MainActivity : AppCompatActivity() {
     private fun clearAll() {
         // Clear all input and reset the calculator
         longResultTv.text = ""
-        resultTv.text = ""
+        resultTv.text = "0"
         canAddDecimal = true
     }
 

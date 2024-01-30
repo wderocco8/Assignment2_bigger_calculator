@@ -237,7 +237,7 @@
                 app:cornerRadius="400dp"
                 android:textSize="15dp"
                 android:textColor="@color/white"
-                app:backgroundTint="@color/baby_blue"
+                app:backgroundTint="@color/pink"
                 android:layout_margin="12dp"
                 android:id="@+id/button_ac"
                 android:text="AC" />
