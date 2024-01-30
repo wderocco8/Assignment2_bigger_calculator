@@ -112,7 +112,8 @@ class MainActivity : AppCompatActivity() {
         // otherwise, we are setting this operator for the first time (must swap operands)
         else {
             onFirstOperand = !onFirstOperand
-            clearAll()
+            currentInput.clear()
+            updateDisplay()
         }
 
         currentOperator = operator
@@ -126,7 +127,9 @@ class MainActivity : AppCompatActivity() {
 
             // update currentInput with result of calculation
             currentInput.clear()
-            currentInput.append(result.toString())
+            if (result > 0) {
+                currentInput.append(result.toString())
+            }
 
             // update operands
             if (onFirstOperand) {
@@ -143,19 +146,28 @@ class MainActivity : AppCompatActivity() {
 
     private fun performCalculation(): Double {
         // Implement the calculation based on the current input and operator
-
+        if (firstOperand == null || secondOperand == null) {
+            return 0.0
+        }
         return when (currentOperator) {
                 "+" -> firstOperand!! + secondOperand!!
-//                "-" ->
-//                "*" ->
-//                "/" ->
+                "-" -> firstOperand!! - secondOperand!!
+                "*" -> firstOperand!! * secondOperand!!
+//                "/" -> firstOperand!! + secondOperand!!
             else -> 0.0
         }
     }
 
     private fun clearLastInput() {
+        if (currentInput.isEmpty()) {
+            return
+        }
         // Clear the last entered digit or operator
         currentInput.deleteCharAt(currentInput.length - 1)
+        // if not input, clear all
+        if (currentInput.isEmpty()) {
+            clearAll()
+        }
         updateDisplay()
     }
 
@@ -163,11 +175,18 @@ class MainActivity : AppCompatActivity() {
         // Clear all input and reset the calculator
         currentInput.clear()
         currentOperator = null
+        firstOperand = null
+        secondOperand = null
+        onFirstOperand = true
         updateDisplay()
     }
 
     private fun updateDisplay() {
         // Update the inputTextView and resultTextView with the current input and result
-        resultTv.text = currentInput
+        resultTv.text = if (currentInput.isNotEmpty()) {
+            currentInput.toString()
+        } else {
+            "0"
+        }
     }
 }
