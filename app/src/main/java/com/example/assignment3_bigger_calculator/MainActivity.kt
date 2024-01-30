@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity() {
         buttonMultiply.setOnClickListener { handleOperation(it) }
         buttonDivide.setOnClickListener { handleOperation(it) }
         buttonModulus.setOnClickListener { handleOperation(it) }
-//        buttonEquals.setOnClickListener { calculateResult() }
+        buttonEquals.setOnClickListener { equals(it) }
         buttonC.setOnClickListener { clearLastInput() }
         buttonAC.setOnClickListener { clearAll() }
 
@@ -123,15 +123,103 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    // NOTE -> the following functions were based off of this tutorial https://www.youtube.com/watch?v=2hSHgungOKI
+    // NOTE -> the following functions (calculateResults, timesDivisionCalc, calcTimesDiv, digitsOperators) were based off of this tutorial https://www.youtube.com/watch?v=2hSHgungOKI
     private fun equals(view: View) {
-
+        resultTv.text = calculateResults()
     }
 
     private fun calculateResults(): String {
+        val digitsList = digitsOperators()
+        // edge case -> no calculations
+        if (digitsList.isEmpty()) return ""
 
-        return ""
+
+        val timesDivison = timesDivisionCalc(digitsList)
+        // if no data from timesDivision calc, return ""
+        if (timesDivison.isEmpty()) return ""
+
+        val result = addSubtractCalc(timesDivison)
+        return result.toString()
     }
+
+    // helper function to perform remaining add/subtract operators (last component of PEMDAS)
+    private fun addSubtractCalc(passedList: MutableList<Any>): Float
+    {
+        var result = passedList[0] as Float
+
+        for(i in passedList.indices)
+        {
+            if(passedList[i] is Char && i != passedList.lastIndex)
+            {
+                val operator = passedList[i]
+                val nextDigit = passedList[i + 1] as Float
+                if (operator == '+')
+                    result += nextDigit
+                if (operator == '-')
+                    result -= nextDigit
+            }
+        }
+
+        return result
+    }
+
+
+    // helper function to find important operators first
+    private fun timesDivisionCalc(passedList: MutableList<Any>): MutableList<Any>
+    {
+        var list = passedList
+        while (list.contains('*') || list.contains('/') || list.contains('%'))
+        {
+            // does each multiplication, divison operation one-by-one
+            list = calcTimesDiv(list)
+        }
+        return list
+    }
+
+    private fun calcTimesDiv(passedList: MutableList<Any>): MutableList<Any>
+    {
+        val newList = mutableListOf<Any>()
+        var restartIndex = passedList.size
+
+        for(i in passedList.indices)
+        {
+            if(passedList[i] is Char && i != passedList.lastIndex && i < restartIndex)
+            {
+                val operator = passedList[i]
+                val prevDigit = passedList[i - 1] as Float
+                val nextDigit = passedList[i + 1] as Float
+                when(operator)
+                {
+                    '*' ->
+                    {
+                        newList.add(prevDigit * nextDigit)
+                        restartIndex = i + 1
+                    }
+                    '/' ->
+                    {
+                        newList.add(prevDigit / nextDigit)
+                        restartIndex = i + 1
+                    }
+                    '%' ->
+                    {
+                        newList.add(prevDigit % nextDigit)
+                        restartIndex = i + 1
+                    }
+                    else ->
+                    {
+                        newList.add(prevDigit)
+                        newList.add(operator)
+                    }
+                }
+            }
+
+            if(i > restartIndex)
+                newList.add(passedList[i])
+        }
+
+        return newList
+    }
+
 
     private fun digitsOperators(): MutableList<Any> {
         val list = mutableListOf<Any>()
@@ -156,7 +244,6 @@ class MainActivity : AppCompatActivity() {
 
         return list
     }
-
 
 
     private fun clearLastInput() {

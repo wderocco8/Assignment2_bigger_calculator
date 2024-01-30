@@ -21,7 +21,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="0"
-        android:inputType="numberDecimal"
         android:textSize="64dp"
         android:textAlignment="textEnd"
         android:textColor="@color/black"
@@ -61,10 +60,9 @@
                 android:layout_margin="12dp"
                 android:textColor="@color/white"
                 android:textSize="32dp"
-                app:backgroundTint="@color/gray"
+                app:backgroundTint="@color/light_gray"
                 app:cornerRadius="400dp"
-                android:id="@+id/button_negate"
-                android:text="¬" />
+                android:id="@+id/button_negate" />
             <com.google.android.material.button.MaterialButton
                 android:layout_width="72dp"
                 android:layout_height="72dp"
